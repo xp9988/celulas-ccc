@@ -92,7 +92,8 @@
 <div id="lista"></div>
 
 <script>
-  var map = L.map('map').setView([-25.48, -49.27], 12);
+  var map = L.map('map').setView([-25.52249, 
+-49.24192], 12);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
@@ -109,8 +110,8 @@
   }
 
   // 🔎 FILTRO
-  function filtrar(dia) {
-    filtroAtual = dia;
+  function filtrar(Dia) {
+    filtroAtual = Dia;
     render();
   }
 
@@ -126,24 +127,24 @@
     });
 
     let filtradas = todasCelulas.filter(c => {
-      return c.ativa && (!filtroAtual || c.dia === filtroAtual);
+      return c.Ativa && (!filtroAtual || c.Dia === filtroAtual);
     });
 
     filtradas.forEach(c => {
 
       // marcador
-      L.marker([c.lat, c.lng])
+      L.marker([c.Lat, c.Lng])
         .addTo(map)
-        .bindPopup(`<b>${c.nome}</b><br>${c.dia} - ${c.horario}`);
+        .bindPopup(`<b>${c.Nome da Célula}</b><br>${c.d]Dia} - ${c.Horário}`);
 
       // card
       document.getElementById("lista").innerHTML += `
         <div class="card">
-          <b>${c.nome}</b><br>
-          ${c.endereco}<br>
-          ${c.dia} - ${c.horario}<br>
+          <b>${c.Nome da Célula}</b><br>
+          ${c.Endereço}<br>
+          ${c.Dia} - ${c.Horário}<br>
           <a class="btn" target="_blank"
-            href="https://www.google.com/maps?q=${c.lat},${c.lng}">
+            href="https://www.google.com/maps?q=${c.Lat},${c.Lng}">
             Como chegar
           </a>
         </div>
