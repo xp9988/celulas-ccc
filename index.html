@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CCC Campus Boqueirão - Células</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+    body { margin:0; font-family: Arial; }
+
+    #map { height: 60vh; }
+
+    #filtros {
+      padding: 10px;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+    }
+
+    .chip {
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: #eee;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .chip.active {
+      background: #2c7be5;
+      color: white;
+    }
+
+    #lista {
+      padding: 10px;
+    }
+
+    .card {
+      background: #fff;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 6px 10px;
+      background: #2c7be5;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="filtros">
+  <div class="chip" onclick="filtrar(null)">Todos</div>
+  <div class="chip" onclick="filtrar('Terça-feira')">Terça</div>
+  <div class="chip" onclick="filtrar('Quinta-feira')">Quinta</div>
+</div>
+
+<div id="map"></div>
+<div id="lista"></div>
+
+<script>
+  var map = L.map('map').setView([-25.48, -49.27], 12);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  var celulas = [
+    {
+      nome: "Célula Alaor e Kharin",
+      endereco: "R. Maestro Carlos Frank, 2531 - Curitiba",
+      dia: "Quinta-feira",
+      horario: "20:00",
+      lat: -25.504,
+      lng: -49.230
+    },
+    {
+      nome: "Célula Alessandro e Patricia",
+      endereco: "R. Cascavel, 2971 - Curitiba",
+      dia: "Quinta-feira",
+      horario: "20:00",
+      lat: -25.505,
+      lng: -49.235
+    },
+    {
+      nome: "Célula Anselmo e Silvane",
+      endereco: "R. Johan Fichte, 80 - São José dos Pinhais",
+      dia: "Terça-feira",
+      horario: "20:00",
+      lat: -25.535,
+      lng: -49.195
+    },
+    {
+      nome: "Célula Eliandro e Monique",
+      endereco: "R. Edmundo Saporski, 169 - São José dos Pinhais",
+      dia: "Quinta-feira",
+      horario: "20:00",
+      lat: -25.530,
+      lng: -49.210
+    },
+    {
+      nome: "Célula Diego e Priscila",
+      endereco: "R. Jardim Olinda, 310 - Curitiba",
+      dia: "Quinta-feira",
+      horario: "20:00",
+      lat: -25.540,
+      lng: -49.260
+    },
+    {
+      nome: "Célula Laurinei e Priscila",
+      endereco: "R. Januário Alves de Souza, 180 - Curitiba",
+      dia: "Terça-feira",
+      horario: "20:00",
+      lat: -25.495,
+      lng: -49.240
+    }
+  ];
+
+  var markers = [];
+
+  function render(lista) {
+    document.getElementById("lista").innerHTML = "";
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
+    lista.forEach(c => {
+      var marker = L.marker([c.lat, c.lng]).addTo(map);
+      markers.push(marker);
+
+      marker.bindPopup(`
+        <b>${c.nome}</b><br>
+        ${c.endereco}<br>
+        ${c.dia} às ${c.horario}<br><br>
+        <a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco)}" target="_blank">
+          Como chegar
+        </a>
+      `);
+
+      document.getElementById("lista").innerHTML += `
+        <div class="card">
+          <b>${c.nome}</b><br>
+          ${c.endereco}<br>
+          ${c.dia} às ${c.horario}<br>
+          <a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco)}" target="_blank">
+            Como chegar
+          </a>
+        </div>
+      `;
+    });
+  }
+
+  function filtrar(dia) {
+    var filtradas = dia ? celulas.filter(c => c.dia === dia) : celulas;
+    render(filtradas);
+  }
+
+  render(celulas);
+
+  // LOCALIZAÇÃO
+  navigator.geolocation.getCurrentPosition(pos => {
+    var userLat = pos.coords.latitude;
+    var userLng = pos.coords.longitude;
+
+    L.marker([userLat, userLng]).addTo(map)
+      .bindPopup("Você está aqui")
+      .openPopup();
+  });
+</script>
+
+</body>
+</html>
