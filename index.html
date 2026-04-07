@@ -4,6 +4,25 @@
   <title>CCC Campus Boqueirão - Células</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDrU4FlAgIl8Ru0FkFIXL801gbOSobk_8g",
+      authDomain: "celulas-ccc.firebaseapp.com",
+      projectId: "celulas-ccc",
+      storageBucket: "celulas-ccc.firebasestorage.app",
+      messagingSenderId: "685641740419",
+      appId: "1:685641740419:web:27e09fc10e30360a896bb6"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+
+  <!-- Leaflet (Mapa) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
@@ -79,83 +98,52 @@
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
-  var celulas = [
-    {
-      nome: "Célula Alaor e Kharin",
-      endereco: "R. Maestro Carlos Frank, 2531 - Curitiba",
-      dia: "Quinta-feira",
-      horario: "20:00",
-      lat: -25.504,
-      lng: -49.230
-    },
-    {
-      nome: "Célula Alessandro e Patricia",
-      endereco: "R. Cascavel, 2971 - Curitiba",
-      dia: "Quinta-feira",
-      horario: "20:00",
-      lat: -25.505,
-      lng: -49.235
-    },
-    {
-      nome: "Célula Anselmo e Silvane",
-      endereco: "R. Johan Fichte, 80 - São José dos Pinhais",
-      dia: "Terça-feira",
-      horario: "20:00",
-      lat: -25.535,
-      lng: -49.195
-    },
-    {
-      nome: "Célula Eliandro e Monique",
-      endereco: "R. Edmundo Saporski, 169 - São José dos Pinhais",
-      dia: "Quinta-feira",
-      horario: "20:00",
-      lat: -25.530,
-      lng: -49.210
-    },
-    {
-      nome: "Célula Diego e Priscila",
-      endereco: "R. Jardim Olinda, 310 - Curitiba",
-      dia: "Quinta-feira",
-      horario: "20:00",
-      lat: -25.540,
-      lng: -49.260
-    },
-    {
-      nome: "Célula Laurinei e Priscila",
-      endereco: "R. Januário Alves de Souza, 180 - Curitiba",
-      dia: "Terça-feira",
-      horario: "20:00",
-      lat: -25.495,
-      lng: -49.240
-    }
-  ];
+  let todasCelulas = [];
+  let filtroAtual = null;
 
-  var markers = [];
+  // 🔥 CARREGAR DO FIREBASE
+  async function carregarCelulas() {
+    const snapshot = await db.collection("celulas").get();
+    todasCelulas = snapshot.docs.map(doc => doc.data());
+    render();
+  }
 
-  function render(lista) {
+  // 🔎 FILTRO
+  function filtrar(dia) {
+    filtroAtual = dia;
+    render();
+  }
+
+  // 🎯 RENDER (MAPA + LISTA)
+  function render() {
     document.getElementById("lista").innerHTML = "";
-    markers.forEach(m => map.removeLayer(m));
-    markers = [];
 
-    lista.forEach(c => {
-      var marker = L.marker([c.lat, c.lng]).addTo(map);
-      markers.push(marker);
+    // limpar mapa
+    map.eachLayer(layer => {
+      if (layer instanceof L.Marker) {
+        map.removeLayer(layer);
+      }
+    });
 
-      marker.bindPopup(`
-        <b>${c.nome}</b><br>
-        ${c.endereco}<br>
-        ${c.dia} às ${c.horario}<br><br>
-        <a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco)}" target="_blank">
-          Como chegar
-        </a>
-      `);
+    let filtradas = todasCelulas.filter(c => {
+      return c.ativa && (!filtroAtual || c.dia === filtroAtual);
+    });
 
+    filtradas.forEach(c => {
+
+      // marcador
+      L.marker([c.lat, c.lng])
+        .addTo(map)
+        .bindPopup(`<b>${c.nome}</b><br>${c.dia} - ${c.horario}`);
+
+      // card
       document.getElementById("lista").innerHTML += `
         <div class="card">
           <b>${c.nome}</b><br>
           ${c.endereco}<br>
-          ${c.dia} às ${c.horario}<br>
-          <a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco)}" target="_blank">
+          ${c.dia} - ${c.horario}<br>
+          <a class="btn" target="_blank"
+            href="https://www.google.com/maps?q=${c.lat},${c.lng}">
             Como chegar
           </a>
         </div>
@@ -163,22 +151,8 @@
     });
   }
 
-  function filtrar(dia) {
-    var filtradas = dia ? celulas.filter(c => c.dia === dia) : celulas;
-    render(filtradas);
-  }
-
-  render(celulas);
-
-  // LOCALIZAÇÃO
-  navigator.geolocation.getCurrentPosition(pos => {
-    var userLat = pos.coords.latitude;
-    var userLng = pos.coords.longitude;
-
-    L.marker([userLat, userLng]).addTo(map)
-      .bindPopup("Você está aqui")
-      .openPopup();
-  });
+  // 🚀 INICIAR
+  carregarCelulas();
 </script>
 
 </body>
